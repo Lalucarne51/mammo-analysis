@@ -14,7 +14,7 @@ def download_and_preprocess():
     buckt_img = 0
     for pict_dcm in uids:
         for i in range(buckt_img, buckt_img+10):
-            nbia.downloadSeries('../data/CBIS-DDSM-All-doiJNLP-zzWs5zfZ.tcia', input_type = "manifest", number=buckt_img, format = "df",path=data)
+            nbia.downloadSeries('../data/CBIS-DDSM-All-doiJNLP-zzWs5zfZ.tcia', input_type = "manifest", number=10, format = "df",path=data)
             dicom2jpg.dicom2jpg(data, target_root=dir_data_processed)
             buckt_img = buckt_img+10
 
