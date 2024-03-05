@@ -1,16 +1,21 @@
 from tcia_utils import nbia
 import dicom2jpg
 
+
 def download_and_preprocess():
 
-    data = "../data/"
-    dir_data_processed = "../data_processed/"
-    # Data download:
-    download_serie = nbia.getSeries(collection = "CBIS-DDSM", format = "df", path= data)
+    data = "../data/data_raw/"
+    dir_data_processed = "../data/data_processed/"
+    manifest = "../manifest/CBIS-DDSM-All-doiJNLP-zzWs5zfZ.tcia"
+
+    # converts manifest to list of UIDs
+    uids = nbia.manifestToList(manifest)
 
     buckt_img = 0
+    for pict_dcm in uids:
+        for i in range(buckt_img, buckt_img+10):
+            nbia.downloadSeries('../data/CBIS-DDSM-All-doiJNLP-zzWs5zfZ.tcia', input_type = "manifest", number=buckt_img, format = "df",path=data)
+            dicom2jpg.dicom2jpg(data, target_root=dir_data_processed)
+            buckt_img = buckt_img+10
 
-    for pict_dcm in download_serie:
-        pictures = nbia.downloadSeries(download_serie, number = buckt_img, path=data)
-        dicom2jpg.dicom2jpg(pictures, target_root=dir_data_processed)
-        buckt_img = buckt_img+1
+download_and_preprocess()
