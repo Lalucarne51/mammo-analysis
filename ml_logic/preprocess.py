@@ -8,7 +8,7 @@ def download_and_preprocess():
     # Data download:
     download_serie = nbia.getSeries(collection = "CBIS-DDSM", format = "df", path= data)
 
-    buckt_img = 1
+    buckt_img = 0
 
     for pict_dcm in download_serie:
         pictures = nbia.downloadSeries(download_serie, number = buckt_img, path=data)
