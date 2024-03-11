@@ -170,3 +170,4 @@ cython_debug/
 /sample/*
 *.csv
 *.Identifier
+CodePierro/
