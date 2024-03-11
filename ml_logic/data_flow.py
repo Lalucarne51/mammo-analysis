@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 
-# import os
+import os
 from google.cloud import storage
 # import cv2
 # from PIL import Image
