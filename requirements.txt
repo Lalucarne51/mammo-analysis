@@ -1,12 +1,6 @@
-pytest
-pylint
-ipdb
-jupyter
-jupyterlab
 numpy
 pandas
-matplotlib
-seaborn
-scikit-learn
-tcia_utils
-dicom2jpg
+tensorflow
+google.cloud.storage
+fsspec
+gcsfs
