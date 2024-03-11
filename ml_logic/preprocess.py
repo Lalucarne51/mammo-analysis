@@ -30,8 +30,8 @@ def download_and_preprocess():
             dicom2jpg.dicom2jpg(data, target_root=dir_data_processed)
             buckt_img = buckt_img+2
 
-def normalize_image(X_train, X_test):
-    X_train = X_train / 255.
+def normalize_image(dataset):
+    dataset = dataset / 255.
     X_test = X_test / 255.
 
     return X_train, X_test
