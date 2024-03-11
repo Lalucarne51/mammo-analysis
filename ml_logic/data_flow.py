@@ -155,3 +155,189 @@ def train_val_test_split(dataset, train_ratio=0.8, test_ratio=0.95):
     test_dataset = test_cancerous_dataset.concatenate(test_normalous_dataset)
 
     return train_val_dataset, train_dataset, val_dataset, test_dataset
+
+
+# Upload files to GCP bucket storage
+def upload_files_to_gcp(bucket_name: str, source_directory: str):
+    """
+    Uploads all files from a local directory to a GCP bucket.
+
+    Parameters:
+    - bucket_name: Name of the GCP bucket.
+    - source_directory: Local directory from which to upload files.
+
+    Return:
+    - None
+    """
+
+    # Initialize GCP Storage client
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+
+    # Ensure the destination blob folder path ends with '/'
+    if destination_blob_folder and not destination_blob_folder.endswith("/"):
+        destination_blob_folder += "/"
+
+    # Walk through the source directory
+    for root, dirs, files in os.walk(source_directory):
+        for filename in files:
+            # Construct the local file path
+            local_path = os.path.join(root, filename)
+            # print(local_path)
+
+            # Construct the destination path in the bucket
+            if destination_blob_folder:
+                relative_path = os.path.relpath(local_path, source_directory)
+                blob_path = destination_blob_folder + relative_path
+            else:
+                blob_path = filename
+
+            # Upload the file
+            blob = bucket.blob(blob_path)
+            blob.upload_from_filename(local_path)
+            print(f'Uploaded {local_path} to "gs://{bucket_name}/{blob_path}"')
+
+
+def create_and_upload_merged_csv(
+    bucket_name: str,
+    metadata_csv,
+    output_csv_name: str = "ready_to_train.csv",
+    file_extension: str = ".jpg",
+):
+    """
+    Fetches files with a specific extension from a GCP bucket, merges their paths with another DataFrame,
+    and uploads the merged DataFrame as a CSV to the bucket.
+
+    Parameters:
+    - bucket_name: The name of the GCP bucket.
+    - metadata_csv: The DataFrame to merge with. It should have columns 'id' and 'label'.
+    - output_csv_name: The name of the output CSV file to be stored in the bucket.
+    - file_extension: The file extension to filter by. Default is '.jpg'.
+
+    Return:
+    - None
+    """
+
+    # Initialize a GCP Storage client
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+
+    # Create a list to hold file information
+    files_info = []
+
+    # Iterate over the files in the bucket, filtering by the specified extension
+    for blob in bucket.list_blobs():
+        if blob.name.lower().endswith(file_extension):
+            file_id = blob.name.rsplit(".", 1)[0]  # Extract the file ID
+            files_info.append(
+                {
+                    "image_id": np.int64(int(file_id)),
+                    "path": f"gs://{bucket_name}/{blob.name}",
+                }
+            )
+
+    # Create a DataFrame from the file information
+    df_files = pd.DataFrame(files_info)
+
+    # Select only the columnes we need
+    metadata_csv = metadata_csv[["image_id", "cancer"]]
+
+    # Merge the DataFrames on the 'id' column
+    merged_df = pd.merge(
+        df_files, metadata_csv, on="image_id", how="inner"
+    )  # Use for the final CSV
+    merged_df = pd.merge(
+        df_files, metadata_csv, on="image_id", how="left"
+    )  # Use for the tests
+
+    # Convert the DataFrame to a CSV string
+    csv_string = merged_df.to_csv(index=False)
+
+    # Save the CSV string to a file in the bucket
+    blob = bucket.blob(output_csv_name)
+    blob.upload_from_string(csv_string, "text/csv")
+    print(f'CSV file "{output_csv_name}" uploaded to bucket "{bucket_name}".')
+
+
+#####
+# Dataset Creation
+#####
+# Load and process images
+def load_and_process_image(file_path: str, label):
+    """
+    Loads and processes an image file for model training.
+
+    Parameters:
+    - file_path: The path to the image file.
+    - label: The label associated with the image file.
+
+    Returns:
+    - Tuple containing the processed image and its label.
+    """
+
+    img = tf.io.read_file(file_path)
+    img = tf.io.decode_jpeg(img, channels=1)
+    img = tf.image.resize(img, [128, 128])  # Resize images
+    img = img / 255.0  # Normalize to [0,1]
+    return img, label
+
+
+def create_dataset(input: str = "local"):
+    """
+    Creates a dataset for model training.
+
+    Parameters:
+    - input: Specifies the source of the dataset, 'local' or 'cloud'.
+
+    Returns:
+    - TensorFlow dataset object.
+    """
+    # local or cloud
+    # Load the dataset
+    if input == "local":
+        df = pd.read_csv(os.path.join(METADATA_DIR, 'ready_to_train.csv'))
+    if input == "cloud":
+        df = pd.read_csv("gs://mammo_data/ready_to_train.csv")
+
+    # Create a TensorFlow dataset
+    paths = df["path"].values
+    labels = df["cancer"].values
+
+    labels = tf.cast(labels, dtype=tf.int32)
+
+    dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
+    dataset = dataset.map(load_and_process_image)
+
+    return dataset
+
+
+def batch_dataset(dataset, batch_size: int):
+    """
+    Batches the dataset with the specified batch size.
+
+    Parameters:
+    - dataset: The dataset to batch.
+    - batch_size: The size of each batch.
+
+    Returns:
+    - Batched dataset.
+    """
+    return dataset.batch(batch_size)
+
+
+def split_dataset(batched_dataset, ratio: float = 0.8):
+    """
+    Splits the batched dataset into training and testing datasets.
+
+    Parameters:
+    - batched_dataset: The batched dataset to split.
+
+    Returns:
+    - Tuple containing the training and testing datasets.
+    """
+    size = int(len(batched_dataset) * ratio)
+
+    train = batched_dataset.take(size)
+    test = batched_dataset.skip(size)
+
+    return train, test
