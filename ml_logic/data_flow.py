@@ -32,12 +32,12 @@ client = storage.Client(project=GCP_PROJECT)
 bucket = client.bucket(BUCKET_NAME)
 
 # Create a folder 'clean_data' if it doesn't exist in the bucket 'mammo_data'
-if 'clean_data/' not in list(client.list_buckets()):
-    blob = bucket.blob('clean_data/')
-    blob.upload_from_string('')
-    blobs = list(client.list_buckets())
-    index = blobs.index('clean_data/')
-    CLEAN_DATA = blobs[index]
+# if 'clean_data/' not in list(client.list_buckets()):
+#     blob = bucket.blob('clean_data/')
+#     blob.upload_from_string('')
+#     blobs = list(client.list_buckets())
+#     index = blobs.index('clean_data/')
+#     CLEAN_DATA = blobs[index]
 
 def preproc_image(path:str, dim=DIM, nb_img=None, extension='.jpg'):
     '''
