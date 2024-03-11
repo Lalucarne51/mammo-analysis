@@ -1,12 +1,12 @@
 import numpy as np
-import time
+# import time
 
-from colorama import Fore, Style
-from typing import Tuple
+# from colorama import Fore, Style
+# from typing import Tuple
 
-# Timing the TF import
-print(Fore.BLUE + "\nLoading TensorFlow..." + Style.RESET_ALL)
-start = time.perf_counter()
+# # Timing the TF import
+# print(Fore.BLUE + "\nLoading TensorFlow..." + Style.RESET_ALL)
+# start = time.perf_counter()
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential

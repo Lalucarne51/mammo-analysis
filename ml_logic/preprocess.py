@@ -1,7 +1,7 @@
-from tcia_utils import nbia
+# from tcia_utils import nbia
 import numpy as np
-import dicom2jpg
-import os
+# import dicom2jpg
+# import os
 from google.cloud import storage
 
 

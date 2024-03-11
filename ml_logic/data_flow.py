@@ -3,12 +3,12 @@
 import pandas as pd
 import numpy as np
 
-import os
+# import os
 from google.cloud import storage
-import cv2
-from PIL import Image
+# import cv2
+# from PIL import Image
 import tensorflow as tf
-import tensorflow_io as tfio
+# import tensorflow_io as tfio
 from tensorflow.data import Dataset
 
 
