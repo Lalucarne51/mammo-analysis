@@ -44,16 +44,16 @@ BATCH_SIZE = 128
 
 ################## VALIDATIONS #################
 
-env_valid_options = dict(
-    DATA_SIZE=["1k", "200k", "all"],
-    # MODEL_TARGET=["local", "gcs", "mlflow"],
-)
+# env_valid_options = dict(
+#     DATA_SIZE=["1k", "200k", "all"],
+#     # MODEL_TARGET=["local", "gcs", "mlflow"],
+# )
 
-def validate_env_value(env, valid_options):
-    env_value = os.environ[env]
-    if env_value not in valid_options:
-        raise NameError(f"Invalid value for {env} in `.env` file: {env_value} must be in {valid_options}")
+# def validate_env_value(env, valid_options):
+#     env_value = os.environ[env]
+#     if env_value not in valid_options:
+#         raise NameError(f"Invalid value for {env} in `.env` file: {env_value} must be in {valid_options}")
 
 
-for env, valid_options in env_valid_options.items():
-    validate_env_value(env, valid_options)
+# for env, valid_options in env_valid_options.items():
+#     validate_env_value(env, valid_options)
