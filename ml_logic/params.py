@@ -26,4 +26,5 @@ DIM = os.environ.get("DIM")
 # LOCAL_DATA_PATH = os.path.join(os.path.expanduser('~'), ".lewagon", "mlops", "data")
 LOCAL_REGISTRY_PATH =  os.path.join(os.path.expanduser('~'), "code", "Lalucarne51", "mammo-analysis", )
 
+EPOCHS = 100
 BATCH_SIZE = 64

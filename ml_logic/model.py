@@ -17,6 +17,7 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
+
     model = Sequential()
     model.add(Conv2D(16, (4, 4), input_shape=(DIM, DIM, 1), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -28,6 +29,7 @@ def initialize_model():
     model.add(Flatten())
     model.add(Dense(units=10, activation="relu"))
     model.add(Dense(units=1, activation="sigmoid"))
+
 
     return model
 
