@@ -22,17 +22,27 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
-    model = Sequential()
-    model.add(Conv2D(16, (4, 4), input_shape=(128, 128, 1), activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(32, (3, 3), activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model = models.Sequential()
 
-    model.add(Conv2D(64, (3, 3), activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Flatten())
-    model.add(Dense(units=10, activation="relu"))
-    model.add(Dense(units=1, activation="sigmoid"))
+    model.add(layers.Conv2D(64, 7, activation='relu', padding='valid', input_shape=(256, 256, 1)))
+    model.add(layers.MaxPooling2D(2))
+    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
+    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
+    model.add(layers.MaxPooling2D(2))
+    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
+    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
+    model.add(layers.MaxPooling2D(2))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(64, activation='relu'))
+    model.add(layers.Dropout(0.5))
+
+    model.add(layers.Dense(10, activation='relu'))
+
+    model.add(layers.Dense(1, activation='sigmoid'))
+
+    return model
 
     return model
 
