@@ -348,11 +348,11 @@ def create_dataset(input: str = "local", ratio=0.8):
     )
 
     # Create a TensorFlow dataset
-    print("Create the train tensorflow dataset")
+    print("Create the train tensorflow dataset :")
     train_dataset = create_tensor_dataset(data_train)
-    print("Create the test tensorflow dataset")
+    print("Create the test tensorflow dataset :")
     test_dataset = create_tensor_dataset(data_test)
-
+    print("✅ Dataset created successfully.")
     return train_dataset, test_dataset
 
 
@@ -368,21 +368,3 @@ def batch_dataset(dataset, batch_size: int):
     - Batched dataset.
     """
     return dataset.batch(batch_size)
-
-
-def split_dataset(batched_dataset, ratio: float = 0.8):
-    """
-    Splits the batched dataset into training and testing datasets.
-
-    Parameters:
-    - batched_dataset: The batched dataset to split.
-
-    Returns:
-    - Tuple containing the training and testing datasets.
-    """
-    size = int(len(batched_dataset) * ratio)
-
-    train = batched_dataset.take(size)
-    test = batched_dataset.skip(size)
-
-    return train, test

@@ -4,7 +4,7 @@ import time
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+from tensorflow.keras.layers import InputLayer, Conv2D, MaxPooling2D, Dense, Flatten
 from params import *
 
 
@@ -21,7 +21,9 @@ def initialize_model():
     model = Sequential()
 
     # Trainable params 444_203
-    model.add(Conv2D(16, (4, 4), input_shape=(DIM, DIM, 1), activation="relu"))
+    model.add(InputLayer(shape=(DIM, DIM, 1)))
+
+    model.add(Conv2D(16, (4, 4), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(32, (3, 3), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -34,6 +36,7 @@ def initialize_model():
     model.add(Conv2D(256, (3, 3), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
+
     model.add(Dense(units=50, activation="relu"))
     model.add(Dense(units=10, activation="relu"))
     model.add(Dense(units=1, activation="sigmoid"))
@@ -53,16 +56,20 @@ def initialize_model():
 
 timestamp = time.strftime("%Y%m%d-%H%M%S")
 
-checkpoint_path = os.path.join(LOCAL_REGISTRY_PATH, "checkpoints", f"{timestamp}.json")
+checkpoint_dir = os.path.join(LOCAL_REGISTRY_PATH, "checkpoints")
+if not os.path.exists(checkpoint_dir):
+    os.makedirs(checkpoint_dir)
+
+checkpoint_path = os.path.join(checkpoint_dir, f"{timestamp}.weights.h5")
 checkpoint = ModelCheckpoint(
     checkpoint_path,
-    monitor="val_recall",
+    monitor="val_Recall",
     verbose=1,
     save_weights_only=True,
     mode="max",
     save_best_only=True,
 )
-es = EarlyStopping(monitor="val_recall", patience=10)
+es = EarlyStopping(monitor="val_Recall", patience=10, mode="max")
 callbacks_list = [checkpoint, es]
 
 # model.load_weights("FILENAME_PATH")
@@ -88,6 +95,15 @@ lossfn = tf.keras.losses.BinaryCrossentropy(
 #####
 # Workflow
 #####
+def get_metrics(history):
+    val_accuracy = np.min(history.history["val_accuracy"])
+    val_recall = np.min(history.history["val_Recall"])
+    val_precision = np.min(history.history["val_Precision"])
+    val_loss = np.min(history.history["val_loss"])
+
+    return val_accuracy, val_precision, val_recall, val_loss
+
+
 def initialize_and_compile_model(optimizer, lossfn):
     """
     Initializes the model, compiles it with the specified optimizer and loss function,
