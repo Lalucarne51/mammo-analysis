@@ -22,7 +22,7 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
-    model = models.Sequential()
+    model = model.Sequential()
 
     model.add(layers.Conv2D(64, 7, activation='relu', padding='valid', input_shape=(256, 256, 1)))
     model.add(layers.MaxPooling2D(2))
