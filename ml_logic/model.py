@@ -1,16 +1,11 @@
 import numpy as np
-# import time
-
-# from colorama import Fore, Style
-# from typing import Tuple
-
-### Timing the TF import
-# print(Fore.BLUE + "\nLoading TensorFlow..." + Style.RESET_ALL)
-# start = time.perf_counter()
+import time
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+from params import *
 
 #####
 # Model
@@ -23,7 +18,7 @@ def initialize_model():
     - TensorFlow Sequential model.
     """
     model = Sequential()
-    model.add(Conv2D(16, (4, 4), input_shape=(128, 128, 1), activation="relu"))
+    model.add(Conv2D(16, (4, 4), input_shape=(DIM, DIM, 1), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(32, (3, 3), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -40,13 +35,21 @@ def initialize_model():
 #####
 # Callback
 #####
-class custom_callback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs={}):
-        if logs["accuracy"] >= 0.97:
-            self.model.stop_training = True
+# class custom_callback(tf.keras.callbacks.Callback):
+#     def on_epoch_end(self, epoch, logs={}):
+#         if logs["accuracy"] >= 0.97:
+#             self.model.stop_training = True
 
+# custom_callback = custom_callback()
 
-custom_callback = custom_callback()
+timestamp = time.strftime("%Y%m%d-%H%M%S")
+
+checkpoint_path=os.path.join(LOCAL_REGISTRY_PATH, "checkpoints", f"{timestamp}.json")
+checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_recall', verbose=1, save_weights_only=True, mode='max', save_best_only=True)
+es = EarlyStopping(monitor='val_recall', patience=10)
+callbacks_list = [checkpoint, es]
+
+# model.load_weights("FILENAME_PATH")
 
 #####
 # Optimizer
@@ -83,7 +86,7 @@ def initialize_and_compile_model(optimizer, lossfn):
     """
     print("\nInit the model :")
     model = initialize_model()
-    model.compile(optimizer=optimizer, loss=lossfn, metrics=["accuracy"])
+    model.compile(optimizer=optimizer, loss=lossfn, metrics=["recall, Accuracy, Precision"])
     return model
 
 
