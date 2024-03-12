@@ -4,7 +4,7 @@ import numpy as np
 # from colorama import Fore, Style
 # from typing import Tuple
 
-# # Timing the TF import
+### Timing the TF import
 # print(Fore.BLUE + "\nLoading TensorFlow..." + Style.RESET_ALL)
 # start = time.perf_counter()
 
