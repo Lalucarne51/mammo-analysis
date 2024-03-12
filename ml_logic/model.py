@@ -61,7 +61,10 @@ custom_callback = custom_callback()
 #####
 # Optimizer
 #####
-optimizer = tf.keras.optimizers.legacy.Adam(
+# optimizer = tf.keras.optimizers.legacy.Adam(
+#     learning_rate=0.000001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, name="Adam"
+# )
+optimizer = tf.keras.optimizers.Adam(
     learning_rate=0.000001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, name="Adam"
 )
 
