@@ -5,21 +5,23 @@ import numpy as np
 
 import os
 from google.cloud import storage
+
 # import cv2
 # from PIL import Image
 import tensorflow as tf
+
 # import tensorflow_io as tfio
 from tensorflow.data import Dataset
 from params import *
 
 CUR_DIR = os.getcwd()
 PROJECT_DIR = os.path.dirname(CUR_DIR)
-DATA_DIR = os.path.join(PROJECT_DIR,'data')
-METADATA_DIR = os.path.join(DATA_DIR, 'metadata')
-IMAGE_DIR = os.path.join(DATA_DIR,'images')
-PROCESSED_DIR = os.path.join(IMAGE_DIR,'data_processed')
-DATA_CLEAN = os.path.join(IMAGE_DIR, 'clean')
-file = 'kaggle.xlsx'
+DATA_DIR = os.path.join(PROJECT_DIR, "data")
+METADATA_DIR = os.path.join(DATA_DIR, "metadata")
+IMAGE_DIR = os.path.join(DATA_DIR, "images")
+PROCESSED_DIR = os.path.join(IMAGE_DIR, "data_processed")
+DATA_CLEAN = os.path.join(IMAGE_DIR, "clean")
+file = "kaggle.xlsx"
 
 # Initialize the GCS client
 client = storage.Client(project=GCP_PROJECT)
@@ -151,32 +153,6 @@ bucket = client.bucket(BUCKET_NAME)
 #     return train_val_dataset, train_dataset, val_dataset, test_dataset
 
 
-def train_test_split(dataset, ratio=0.8):
-    """
-    Splits the batched dataset into training and testing datasets.
-
-    Parameters:
-    - dataset: The batched dataset to split.
-
-    Returns:
-    - Tuple containing the training and testing datasets.
-    """
-
-    cancerous_dataset = dataset.map(lambda x: x[x['cancer']==1])
-    normalous_dataset = dataset.map(lambda x: x[x['cancer']==0])
-
-    train_cancerous_dataset = cancerous_dataset.take(int(len(cancerous_dataset)*ratio))
-    test_cancerous_dataset = cancerous_dataset.skip(int(len(cancerous_dataset)*ratio))
-
-    train_normalous_dataset = normalous_dataset.take(int(len(normalous_dataset)*ratio))
-    test_normalous_dataset = normalous_dataset.skip(int(len(normalous_dataset)*ratio))
-
-    train = train_cancerous_dataset.concatenate(train_normalous_dataset)
-    test = test_cancerous_dataset.concatenate(test_normalous_dataset)
-
-    return train, test
-
-
 # Upload files to GCP bucket storage
 def upload_files_to_gcp(bucket_name: str, source_directory: str):
     """
@@ -297,9 +273,56 @@ def load_and_process_image(file_path: str, label):
 
     img = tf.io.read_file(file_path)
     img = tf.io.decode_jpeg(img, channels=1)
-    img = tf.image.resize(img, [DIM,DIM])  # Resize images
+    img = tf.image.resize(img, [DIM, DIM])  # Resize images
     img = img / 255.0  # Normalize to [0,1]
     return img, label
+
+
+def custom_train_test_split(dataframe, split: float):
+
+    print("Create Train test split : ")
+
+    # Get labels
+    cancer = dataframe[dataframe.cancer == 1]
+    no_cancer = dataframe[dataframe.cancer == 0]
+
+    # Keep ratio
+    cancer_split = int(cancer.shape[0] * split)
+    no_cancer_split = int(no_cancer.shape[0] * split)
+
+    # Split Data
+    cancer_train = cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        :cancer_split
+    ]
+    cancer_test = cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        cancer_split:
+    ]
+    no_cancer_train = no_cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        :no_cancer_split
+    ]
+    no_cancer_test = no_cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        no_cancer_split:
+    ]
+
+    # Concat train & test
+    data_train = pd.concat([no_cancer_train, cancer_train])
+    data_test = pd.concat([no_cancer_test, cancer_test])
+
+    print(data_train.shape, data_test.shape)
+
+    return data_train, data_test
+
+
+def create_tensor_dataset(dataframe):
+    paths = dataframe["path"].values
+    labels = dataframe["cancer"].values
+
+    labels = tf.cast(labels, dtype=tf.int32)
+
+    dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
+    dataset = dataset.map(load_and_process_image)
+
+    return dataset
 
 
 def create_dataset(input: str = "local", ratio=0.8):
@@ -315,29 +338,22 @@ def create_dataset(input: str = "local", ratio=0.8):
     # local or cloud
     # Load the dataset
     if input == "local":
-        df = pd.read_csv(os.path.join(METADATA_DIR, 'ready_to_train.csv'))
+        df = pd.read_csv(os.path.join(METADATA_DIR, "ready_to_train.csv"))
     if input == "cloud":
         df = pd.read_csv("gs://mammo_data/ready_to_train.csv")
 
-    # Train/Test split
-    cancerous = df[df['cancer']==1]
-    train_cancerous = cancerous.take(int(len(cancerous)*ratio))
-    test_cancerous = cancerous.skip(int(len(cancerous)*ratio))
-
-    normalous = df[df['cancer']==0]
-    train_normalous = normalous.take(int(len(normalous)*ratio))
-    test_normalous = normalous.skip(int(len(normalous)*ratio))
+    # Train / Test keeping ratio
+    data_train, data_test = custom_train_test_split(
+        df.drop(columns=["Unnamed: 0"]), split=ratio
+    )
 
     # Create a TensorFlow dataset
-    paths = df["path"].values
-    labels = df["cancer"].values
+    print("Create the train tensorflow dataset")
+    train_dataset = create_tensor_dataset(data_train)
+    print("Create the test tensorflow dataset")
+    test_dataset = create_tensor_dataset(data_test)
 
-    labels = tf.cast(labels, dtype=tf.int32)
-
-    dataset = tf.data.Dataset.from_tensor_slices((paths, labels))
-    dataset = dataset.map(load_and_process_image)
-
-    return dataset
+    return train_dataset, test_dataset
 
 
 def batch_dataset(dataset, batch_size: int):

@@ -7,6 +7,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
 from params import *
 
+
 #####
 # Model
 #####
@@ -17,8 +18,9 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
-
     model = Sequential()
+
+    # Trainable params 444_203
     model.add(Conv2D(16, (4, 4), input_shape=(DIM, DIM, 1), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(32, (3, 3), activation="relu"))
@@ -26,10 +28,15 @@ def initialize_model():
 
     model.add(Conv2D(64, (3, 3), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(128, (3, 3), activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Conv2D(256, (3, 3), activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
+    model.add(Dense(units=50, activation="relu"))
     model.add(Dense(units=10, activation="relu"))
     model.add(Dense(units=1, activation="sigmoid"))
-
 
     return model
 
@@ -46,9 +53,16 @@ def initialize_model():
 
 timestamp = time.strftime("%Y%m%d-%H%M%S")
 
-checkpoint_path=os.path.join(LOCAL_REGISTRY_PATH, "checkpoints", f"{timestamp}.json")
-checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_recall', verbose=1, save_weights_only=True, mode='max', save_best_only=True)
-es = EarlyStopping(monitor='val_recall', patience=10)
+checkpoint_path = os.path.join(LOCAL_REGISTRY_PATH, "checkpoints", f"{timestamp}.json")
+checkpoint = ModelCheckpoint(
+    checkpoint_path,
+    monitor="val_recall",
+    verbose=1,
+    save_weights_only=True,
+    mode="max",
+    save_best_only=True,
+)
+es = EarlyStopping(monitor="val_recall", patience=10)
 callbacks_list = [checkpoint, es]
 
 # model.load_weights("FILENAME_PATH")
@@ -88,7 +102,9 @@ def initialize_and_compile_model(optimizer, lossfn):
     """
     print("\nInit the model :")
     model = initialize_model()
-    model.compile(optimizer=optimizer, loss=lossfn, metrics=["recall, Accuracy, Precision"])
+    model.compile(
+        optimizer=optimizer, loss=lossfn, metrics=["accuracy", "Recall", "Precision"]
+    )
     return model
 
 
@@ -113,6 +129,7 @@ def train_model(model, train, test, epochs: int, callbacks: list):
         callbacks=callbacks,
     )
     return history
+
 
 # def evaluate_model(model: Model,
 #                    dataset,
