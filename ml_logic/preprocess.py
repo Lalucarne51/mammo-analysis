@@ -1,5 +1,6 @@
 # from tcia_utils import nbia
 import numpy as np
+
 # import dicom2jpg
 # import os
 from google.cloud import storage
@@ -9,6 +10,7 @@ BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
 # storage_filename = "models/random_forest_model.joblib"
 # local_filename = "model.joblib"
+
 
 def download_and_preprocess():
 
@@ -25,14 +27,17 @@ def download_and_preprocess():
 
     buckt_img = 0
     for pict_dcm in uids:
-        for i in range(buckt_img, buckt_img+2):
-            nbia.downloadSeries(manifest, input_type = "manifest", number=2, format = "df",path=local_data)
+        for i in range(buckt_img, buckt_img + 2):
+            nbia.downloadSeries(
+                manifest, input_type="manifest", number=2, format="df", path=local_data
+            )
             dicom2jpg.dicom2jpg(data, target_root=dir_data_processed)
-            buckt_img = buckt_img+2
+            buckt_img = buckt_img + 2
+
 
 def normalize_image(dataset):
-    dataset = dataset / 255.
-    X_test = X_test / 255.
+    dataset = dataset / 255.0
+    X_test = X_test / 255.0
 
     return X_train, X_test
 
@@ -42,6 +47,7 @@ def dim_expansion(X_train, X_test):
     X_test = np.expand_dims(X_test, axis=-1)
 
     return X_train, X_test
+
 
 def resize_image(X_train, X_test):
     X_train = (X_train - X_train.min()) / (X_train.max() - X_train.min())
