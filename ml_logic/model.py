@@ -1,16 +1,11 @@
 import numpy as np
-# import time
-
-# from colorama import Fore, Style
-# from typing import Tuple
-
-### Timing the TF import
-# print(Fore.BLUE + "\nLoading TensorFlow..." + Style.RESET_ALL)
-# start = time.perf_counter()
+import time
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+from params import *
 
 #####
 # Model
@@ -22,27 +17,19 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
-    model = model.Sequential()
 
-    model.add(layers.Conv2D(64, 7, activation='relu', padding='valid', input_shape=(256, 256, 1)))
-    model.add(layers.MaxPooling2D(2))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
-    model.add(layers.MaxPooling2D(2))
-    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
-    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
-    model.add(layers.MaxPooling2D(2))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(64, activation='relu'))
-    model.add(layers.Dropout(0.5))
+    model = Sequential()
+    model.add(Conv2D(16, (4, 4), input_shape=(DIM, DIM, 1), activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(32, (3, 3), activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(layers.Dense(10, activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(units=10, activation="relu"))
+    model.add(Dense(units=1, activation="sigmoid"))
 
-    model.add(layers.Dense(1, activation='sigmoid'))
-
-    return model
 
     return model
 
@@ -50,13 +37,21 @@ def initialize_model():
 #####
 # Callback
 #####
-class custom_callback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs={}):
-        if logs["accuracy"] >= 0.97:
-            self.model.stop_training = True
+# class custom_callback(tf.keras.callbacks.Callback):
+#     def on_epoch_end(self, epoch, logs={}):
+#         if logs["accuracy"] >= 0.97:
+#             self.model.stop_training = True
 
+# custom_callback = custom_callback()
 
-custom_callback = custom_callback()
+timestamp = time.strftime("%Y%m%d-%H%M%S")
+
+checkpoint_path=os.path.join(LOCAL_REGISTRY_PATH, "checkpoints", f"{timestamp}.json")
+checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_recall', verbose=1, save_weights_only=True, mode='max', save_best_only=True)
+es = EarlyStopping(monitor='val_recall', patience=10)
+callbacks_list = [checkpoint, es]
+
+# model.load_weights("FILENAME_PATH")
 
 #####
 # Optimizer
@@ -93,7 +88,7 @@ def initialize_and_compile_model(optimizer, lossfn):
     """
     print("\nInit the model :")
     model = initialize_model()
-    model.compile(optimizer=optimizer, loss=lossfn, metrics=["accuracy"])
+    model.compile(optimizer=optimizer, loss=lossfn, metrics=["recall, Accuracy, Precision"])
     return model
 
 
