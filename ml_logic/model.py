@@ -11,6 +11,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+from tensorflow.keras import layers
 
 #####
 # Model
@@ -22,29 +23,55 @@ def initialize_model():
     Returns:
     - TensorFlow Sequential model.
     """
-    model = models.Sequential()
+    model = Sequential()
 
-    model.add(layers.Conv2D(64, 7, activation='relu', padding='valid', input_shape=(256, 256, 1)))
+    model.add(layers.Conv2D(256, 11, strides=(5,5), activation='relu', padding='same', input_shape=(256, 256, 1)))
+
     model.add(layers.MaxPooling2D(2))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
+
+    model.add(layers.Conv2D(512, 7, strides=(2,2), activation='relu', padding='same'))
+    model.add(layers.Conv2D(512, 7, strides=(1,1), activation='relu', padding='same'))
+
     model.add(layers.MaxPooling2D(2))
-    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
-    model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
+
+    model.add(layers.Conv2D(1024, 7, activation='relu', padding='valid'))
+    model.add(layers.Conv2D(1024, 7, activation='relu', padding='valid'))
+
     model.add(layers.MaxPooling2D(2))
+
+    model.add(layers.Conv2D(1024, 5, activation='relu', padding='valid'))
+    model.add(layers.Conv2D(1024, 5, activation='relu', padding='valid'))
+
+    model.add(layers.MaxPooling2D(2))
+
+    model.add(layers.Conv2D(512, 3, activation='relu', padding='valid'))
+    model.add(layers.Conv2D(512, 3, activation='relu', padding='valid'))
+
+    model.add(layers.MaxPooling2D(2))
+
+    model.add(layers.Conv2D(256, 3, activation='relu', padding='valid'))
+    model.add(layers.Conv2D(256, 3, activation='relu', padding='valid'))
+
+    model.add(layers.MaxPooling2D(4))
+
+    model.add(layers.Conv2D(128, 3, activation='relu', padding='valid'))
+    model.add(layers.Conv2D(128, 3, activation='relu', padding='valid'))
+
     model.add(layers.Flatten())
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dropout(0.5))
+
     model.add(layers.Dense(64, activation='relu'))
     model.add(layers.Dropout(0.5))
 
-    model.add(layers.Dense(10, activation='relu'))
+    model.add(layers.Dense(32, activation='relu'))
+    model.add(layers.Dropout(0.5))
+
+    model.add(layers.Dense(16, activation='relu'))
+    model.add(layers.Dropout(0.5))
 
     model.add(layers.Dense(1, activation='sigmoid'))
 
     return model
 
-    return model
 
 
 #####

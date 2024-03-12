@@ -90,12 +90,13 @@ def initialize_model(input_shape: tuple) -> Model:
     ## layers.Reshape((28, 28, 1), input_shape=(28,28)) ##
 
 
-    model = models.Sequential()
+    model = Sequential()
 
-    model.add(layers.Conv2D(64, 7, activation='relu', padding='valid', input_shape=(256, 256, 1)))
-    model.add(layers.MaxPooling2D(2))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
-    model.add(layers.Conv2D(128, 3, activation='relu', padding='same'))
+    model.add(layers.Conv2D(128, 5, activation='relu', padding='valid', input_shape=(256, 256, 1)))
+    model.add(layers.Conv2D(128, 5, strides=(2,2), activation='relu', padding='valid'))
+    model.add(layers.MaxPooling2D(2, padding='valid'))
+    model.add(layers.Conv2D(256, 5, activation='relu', padding='same'))
+    model.add(layers.Conv2D(256, 5, strides=(2,2), activation='relu', padding='same'))
     model.add(layers.MaxPooling2D(2))
     model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
     model.add(layers.Conv2D(256, 3, activation='relu', padding='same'))
@@ -106,11 +107,7 @@ def initialize_model(input_shape: tuple) -> Model:
     model.add(layers.Dense(64, activation='relu'))
     model.add(layers.Dropout(0.5))
 
-    model.add(layers.Dense(10, activation='relu'))
-
     model.add(layers.Dense(1, activation='sigmoid'))
-
-    ### NEED LAYER
 
     return model
 
