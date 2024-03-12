@@ -171,3 +171,4 @@ cython_debug/
 *.csv
 *.Identifier
 CodePierro/
+.python-version
