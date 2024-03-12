@@ -4,5 +4,4 @@ tensorflow
 google.cloud.storage
 fsspec
 gcsfs
-time
-pickle
+colorama
