@@ -39,7 +39,7 @@ DTYPES_RAW = {
 }
 
 DTYPES_PROCESSED = np.float32
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 
 
 ################## VALIDATIONS #################
