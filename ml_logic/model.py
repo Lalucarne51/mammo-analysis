@@ -21,7 +21,7 @@ def initialize_model():
     model = Sequential()
 
     # Trainable params 444_203
-    model.add(InputLayer(input_shape=(DIM, DIM, 1)))
+    model.add(InputLayer(shape=(DIM, DIM, 1)))
 
     model.add(Conv2D(16, (4, 4), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
