@@ -18,8 +18,9 @@ colorama.init(autoreset=True)
 print("==== Starting Workflow ====")
 
 # Step 1: Create the Dataset
+# all custom over_sample under_sample
 print(Fore.BLUE + "\n=== Step 1: Creating the Datasets ===")
-train_dataset, test_dataset = create_dataset(input="cloud")
+train_dataset, test_dataset = create_dataset(input="cloud", data_type="all")
 print(
     Fore.GREEN
     + f"Train/Test datasets created. \nTrain size: {len(train_dataset)}, Test size: {len(test_dataset)}."
