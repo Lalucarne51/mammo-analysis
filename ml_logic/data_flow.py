@@ -278,6 +278,59 @@ def load_and_process_image(file_path: str, label):
     return img, label
 
 
+def custom_data_balancing(dataframe, data_type: str, split: float):
+
+    print("Create Train test split : ")
+
+    # Get labels
+    cancer = dataframe[dataframe.cancer == 1].copy()
+    no_cancer = dataframe[dataframe.cancer == 0].copy()
+
+    if data_type == "ricard":
+        cancer_50 = cancer._append([cancer] * 20, ignore_index=True)
+        no_cancer_50 = no_cancer.iloc[:25_000]
+        cancer = cancer_50
+        no_cancer = no_cancer_50
+
+    if data_type == "under_sample":
+        no_cancer_under = no_cancer.iloc[:1158]
+        no_cancer = no_cancer_under
+
+    if data_type == "over_sample":
+        cancer_over = cancer._append([cancer] * 45, ignore_index=True)
+        cancer = cancer_over
+
+    if data_type == "custom":
+        cancer_custom = cancer._append([cancer] * 15, ignore_index=True)
+        cancer = cancer_custom
+
+    # Keep ratio
+    cancer_split = int(cancer.shape[0] * split)
+    no_cancer_split = int(no_cancer.shape[0] * split)
+
+    # Split Data
+    cancer_train = cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        :cancer_split
+    ]
+    cancer_test = cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        cancer_split:
+    ]
+    no_cancer_train = no_cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        :no_cancer_split
+    ]
+    no_cancer_test = no_cancer.sample(frac=1.0, replace=False, random_state=4212).iloc[
+        no_cancer_split:
+    ]
+
+    # Concat train & test
+    data_train = pd.concat([no_cancer_train, cancer_train])
+    data_test = pd.concat([no_cancer_test, cancer_test])
+
+    print(data_train.shape, data_test.shape)
+
+    return data_train, data_test
+
+
 def custom_train_test_split(dataframe, split: float):
 
     print("Create Train test split : ")
@@ -325,12 +378,13 @@ def create_tensor_dataset(dataframe):
     return dataset
 
 
-def create_dataset(input: str = "local", ratio=0.8):
+def create_dataset(input: str = "local", data_type: str = "all", ratio=0.8):
     """
     Creates a dataset for model training.
 
     Parameters:
     - input: Specifies the source of the dataset, 'local' or 'cloud'.
+    - data_type: Specifies the balancing of the dataset, 'all', 'ricard', 'under_sample', 'over_sample', 'custom'.
 
     Returns:
     - TensorFlow dataset object.
@@ -338,13 +392,13 @@ def create_dataset(input: str = "local", ratio=0.8):
     # local or cloud
     # Load the dataset
     if input == "local":
-        df = pd.read_csv(os.path.join(METADATA_DIR, "ready_to_train.csv"))
+        df = pd.read_csv("ready_to_train.csv")
     if input == "cloud":
         df = pd.read_csv("gs://mammo_data/ready_to_train.csv")
 
     # Train / Test keeping ratio
-    data_train, data_test = custom_train_test_split(
-        df.drop(columns=["Unnamed: 0"]), split=ratio
+    data_train, data_test = custom_data_balancing(
+        dataframe=df, data_type=data_type, split=ratio
     )
 
     # Create a TensorFlow dataset

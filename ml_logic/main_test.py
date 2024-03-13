@@ -24,7 +24,7 @@ print("==== Starting Test Workflow ====")
 
 # Step 1: Create the Dataset
 print(Fore.BLUE + "\n=== Step 1: Creating the Datasets ===")
-train_dataset, test_dataset = create_dataset(input="cloud")
+train_dataset, test_dataset = create_dataset(input="cloud", data_type="custom")
 print(
     Fore.GREEN
     + f"Train/Test split created. Train size: {len(train_dataset)}, Test size: {len(test_dataset)}."
