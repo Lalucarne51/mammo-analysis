@@ -1,12 +1,10 @@
 import numpy as np
 import time
-
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import InputLayer, Conv2D, MaxPooling2D, Dense, Flatten
 from params import *
-
 
 #####
 # Model
@@ -30,11 +28,7 @@ def initialize_model():
 
     model.add(Conv2D(64, (3, 3), activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(128, (3, 3), activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(256, (3, 3), activation="relu"))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
 
     model.add(Dense(units=50, activation="relu"))
